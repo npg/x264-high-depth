@@ -1091,6 +1091,7 @@ x264_t *x264_encoder_open( x264_param_t *param )
         h->sps->i_profile_idc == PROFILE_BASELINE ? "Baseline" :
         h->sps->i_profile_idc == PROFILE_MAIN ? "Main" :
         h->sps->i_profile_idc == PROFILE_HIGH ? "High" :
+        h->sps->i_profile_idc == PROFILE_HIGH10 ? "High10" :
         "High 4:4:4 Predictive", h->sps->i_level_idc/10, h->sps->i_level_idc%10 );
 
     return h;

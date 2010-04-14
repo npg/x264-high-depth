@@ -13,6 +13,7 @@ echo "  --disable-ffms-input     disables ffmpegsource input"
 echo "  --disable-mp4-output     disables mp4 output (using gpac)"
 echo "  --disable-pthread        disables multithreaded encoding"
 echo "  --disable-asm            disables platform-specific assembly optimizations"
+echo "  --enable-high-depth      enables 10 or more bits/sample"
 echo "  --enable-debug           adds -g, doesn't strip"
 echo "  --enable-gprof           adds -pg, doesn't strip"
 echo "  --enable-visualize       enables visualization (X11 only)"
@@ -119,6 +120,7 @@ ffms_input="auto"
 mp4_output="auto"
 pthread="auto"
 asm="yes"
+high_depth="no"
 debug="no"
 gprof="no"
 pic="no"
@@ -183,6 +185,12 @@ for opt do
             ;;
         --disable-mp4-output)
             mp4_output="no"
+            ;;
+        --enable-high-depth)
+            high_depth="yes"
+            ;;
+        --disable-high-depth)
+            high_depth="no"
             ;;
         --extra-asflags=*)
             ASFLAGS="$ASFLAGS ${opt#--extra-asflags=}"
@@ -618,6 +626,10 @@ if [ "$avs_input" = "auto" ] ; then
     fi
 fi
 
+if [ "$high_depth" = "yes" ] ; then
+    define X264_HIGH_DEPTH_SUPPORT
+fi
+
 if [ "$pic" = "yes" ] ; then
     CFLAGS="$CFLAGS -fPIC"
     ASFLAGS="$ASFLAGS -DPIC"
@@ -722,6 +734,7 @@ avs input:  $avs_input
 lavf input: $lavf_input
 ffms input: $ffms_input
 mp4 output: $mp4_output
+high depth: $high_depth
 pthread:    $pthread
 debug:      $debug
 gprof:      $gprof

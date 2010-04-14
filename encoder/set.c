@@ -104,7 +104,11 @@ void x264_sps_init( x264_sps_t *sps, int i_id, x264_param_t *param )
     if( sps->b_qpprime_y_zero_transform_bypass )
         sps->i_profile_idc  = PROFILE_HIGH444_PREDICTIVE;
     else if( param->analyse.b_transform_8x8 || param->i_cqm_preset != X264_CQM_FLAT )
+#ifdef X264_HIGH_DEPTH_SUPPORT
+        sps->i_profile_idc  = PROFILE_HIGH10;
+#else
         sps->i_profile_idc  = PROFILE_HIGH;
+#endif
     else if( param->b_cabac || param->i_bframe > 0 || param->b_interlaced || param->analyse.i_weighted_pred > 0 )
         sps->i_profile_idc  = PROFILE_MAIN;
     else
@@ -255,8 +259,19 @@ void x264_sps_write( bs_t *s, x264_sps_t *sps )
     if( sps->i_profile_idc >= PROFILE_HIGH )
     {
         bs_write_ue( s, 1 ); // chroma_format_idc = 4:2:0
-        bs_write_ue( s, 0 ); // bit_depth_luma_minus8
-        bs_write_ue( s, 0 ); // bit_depth_chroma_minus8
+#ifdef X264_HIGH_DEPTH_SUPPORT
+        // FIXME: 10-bit assumed, what about 14
+        if( sps->i_profile_idc >= PROFILE_HIGH10  )
+        {
+            bs_write_ue( s, 2 ); // bit_depth_luma_minus8
+            bs_write_ue( s, 2 ); // bit_depth_chroma_minus8
+        }
+        else
+#endif
+        {
+            bs_write_ue( s, 0 ); // bit_depth_luma_minus8
+            bs_write_ue( s, 0 ); // bit_depth_chroma_minus8
+        }
         bs_write( s, 1, sps->b_qpprime_y_zero_transform_bypass );
         bs_write( s, 1, 0 ); // seq_scaling_matrix_present_flag
     }
