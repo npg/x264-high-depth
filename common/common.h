@@ -95,6 +95,12 @@ typedef union { uint64_t i; uint32_t a[2]; uint16_t b[4]; uint8_t c[8]; } MAY_AL
 #define CP32(dst,src) M32(dst) = M32(src)
 #define CP64(dst,src) M64(dst) = M64(src)
 
+#ifdef X264_HIGH_DEPTH_SUPPORT
+    typedef uint16_t pixel_t;
+# else
+    typedef uint8_t pixel_t;
+#endif
+
 #include "x264.h"
 #include "bs.h"
 #include "set.h"
@@ -591,12 +597,12 @@ struct x264_t
             /* space for p_fenc and p_fdec */
 #define FENC_STRIDE 16
 #define FDEC_STRIDE 32
-            ALIGNED_16( uint8_t fenc_buf[24*FENC_STRIDE] );
-            ALIGNED_16( uint8_t fdec_buf[27*FDEC_STRIDE] );
+            ALIGNED_16( pixel_t fenc_buf[24*FENC_STRIDE] );
+            ALIGNED_16( pixel_t fdec_buf[27*FDEC_STRIDE] );
 
             /* i4x4 and i8x8 backup data, for skipping the encode stage when possible */
-            ALIGNED_16( uint8_t i4x4_fdec_buf[16*16] );
-            ALIGNED_16( uint8_t i8x8_fdec_buf[16*16] );
+            ALIGNED_16( pixel_t i4x4_fdec_buf[16*16] );
+            ALIGNED_16( pixel_t i8x8_fdec_buf[16*16] );
             ALIGNED_16( int16_t i8x8_dct_buf[3][64] );
             ALIGNED_16( int16_t i4x4_dct_buf[15][16] );
             uint32_t i4x4_nnz_buf[4];
@@ -613,17 +619,17 @@ struct x264_t
             ALIGNED_16( uint32_t fenc_satd_cache[32] );
 
             /* pointer over mb of the frame to be compressed */
-            uint8_t *p_fenc[3];
+            pixel_t *p_fenc[3];
             /* pointer to the actual source frame, not a block copy */
-            uint8_t *p_fenc_plane[3];
+            pixel_t *p_fenc_plane[3];
 
             /* pointer over mb of the frame to be reconstructed  */
-            uint8_t *p_fdec[3];
+            pixel_t *p_fdec[3];
 
             /* pointer over mb of the references */
             int i_fref[2];
-            uint8_t *p_fref[2][32][4+2]; /* last: lN, lH, lV, lHV, cU, cV */
-            uint8_t *p_fref_w[32];  /* weighted fullpel luma */
+            pixel_t *p_fref[2][32][4+2]; /* last: lN, lH, lV, lHV, cU, cV */
+            pixel_t *p_fref_w[32];  /* weighted fullpel luma */
             uint16_t *p_integral[2][16];
 
             /* fref stride */
