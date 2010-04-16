@@ -996,7 +996,7 @@ int x264_picture_alloc( x264_picture_t *pic, int i_csp, int i_width, int i_heigh
     pic->i_qpplus1 = 0;
     pic->img.i_csp = i_csp;
     pic->img.i_plane = 3;
-    pic->img.plane[0] = x264_malloc( 3 * i_width * i_height / 2 );
+    pic->img.plane[0] = x264_malloc( sizeof(pixel_t) * 3 * i_width * i_height / 2 );
     if( !pic->img.plane[0] )
         return -1;
     pic->img.plane[1] = pic->img.plane[0] + i_width * i_height;
