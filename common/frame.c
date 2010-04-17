@@ -259,10 +259,14 @@ static void plane_expand_border( pixel_t *pix, int i_stride, int i_width, int i_
 #define PPIXEL(x, y) ( pix + (x) + (y)*i_stride )
     for( int y = 0; y < i_height; y++ )
     {
-        /* left band */
-        memset( PPIXEL(-i_padh, y), PPIXEL(0, y)[0], i_padh * sizeof(pixel_t) );
-        /* right band */
-        memset( PPIXEL(i_width, y), PPIXEL(i_width-1, y)[0], i_padh * sizeof(pixel_t) );
+        // FIXME slow ?
+        pixel_t left_val = PPIXEL(0, y)[0];
+        pixel_t right_val = PPIXEL(i_width-1, y)[0];
+        for( int pad = 0; pad < i_padh; pad++ )
+        {
+            PPIXEL(-i_padh + pad, y) = left_val;
+            PPIXEL(i_width + pad, y) = right_val;
+        }
     }
     /* upper band */
     if( b_pad_top )
@@ -347,9 +351,12 @@ void x264_frame_expand_border_mod16( x264_t *h, x264_frame_t *frame )
         if( i_padx )
         {
             for( int y = 0; y < i_height; y++ )
-                memset( &frame->plane[i][y*frame->i_stride[i] + i_width],
-                         frame->plane[i][y*frame->i_stride[i] + i_width - 1],
-                         i_padx * sizeof(pixel_t) );
+            {
+                // FIXME slow ?
+                pixel_t val = frame->plane[i][y*frame->i_stride[i] + i_width - 1];
+                for( int pad = 0; pad < i_padx; pad++ )
+                    frame->plane[i][y*frame->i_stride[i] + i_width + pad] = val;
+            }
         }
         if( i_pady )
         {
