@@ -296,14 +296,15 @@ MC_COPY( 16 )
 MC_COPY( 8 )
 MC_COPY( 4 )
 
-void x264_plane_copy_c( uint8_t *dst, int i_dst,
-                        uint8_t *src, int i_src, int w, int h)
+void x264_plane_copy_c( pixel_t *dst, int i_dst,
+                        pixel_t *src, int i_src, int w, int h)
 {
     while( h-- )
     {
-        memcpy( dst, src, w );
+        for( int i = 0; i < w; i++ )
+            dst[i] = src[i];
         dst += i_dst;
-        src += i_src;
+        src += i_src;  /* could be negative (VFLIP) */
     }
 }
 

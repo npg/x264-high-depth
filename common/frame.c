@@ -264,8 +264,8 @@ static void plane_expand_border( pixel_t *pix, int i_stride, int i_width, int i_
         pixel_t right_val = PPIXEL(i_width-1, y)[0];
         for( int pad = 0; pad < i_padh; pad++ )
         {
-            PPIXEL(-i_padh + pad, y) = left_val;
-            PPIXEL(i_width + pad, y) = right_val;
+            *PPIXEL(-i_padh + pad, y) = left_val;
+            *PPIXEL(i_width + pad, y) = right_val;
         }
     }
     /* upper band */
