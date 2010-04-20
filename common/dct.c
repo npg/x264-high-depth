@@ -225,7 +225,7 @@ static void add4x4_idct( pixel_t *p_dst, int16_t dct[16] )
     for( int y = 0; y < 4; y++ )
     {
         for( int x = 0; x < 4; x++ )
-            p_dst[x] = x264_clip_uint8( p_dst[x] + d[y*4+x] );
+            p_dst[x] = x264_clip_pixel( p_dst[x] + d[y*4+x] );
         p_dst += FDEC_STRIDE;
     }
 }
@@ -345,7 +345,7 @@ static void add8x8_idct8( pixel_t *dst, int16_t dct[64] )
 #undef DST
 
 #define SRC(x)     dct[i*8+x]
-#define DST(x,rhs) dst[i + x*FDEC_STRIDE] = x264_clip_uint8( dst[i + x*FDEC_STRIDE] + ((rhs) >> 6) );
+#define DST(x,rhs) dst[i + x*FDEC_STRIDE] = x264_clip_pixel( dst[i + x*FDEC_STRIDE] + ((rhs) >> 6) );
     for( int i = 0; i < 8; i++ )
         IDCT8_1D
 #undef SRC
@@ -365,10 +365,10 @@ static void inline add4x4_idct_dc( pixel_t *p_dst, int16_t dc )
     dc = (dc + 32) >> 6;
     for( int i = 0; i < 4; i++, p_dst += FDEC_STRIDE )
     {
-        p_dst[0] = x264_clip_uint8( p_dst[0] + dc );
-        p_dst[1] = x264_clip_uint8( p_dst[1] + dc );
-        p_dst[2] = x264_clip_uint8( p_dst[2] + dc );
-        p_dst[3] = x264_clip_uint8( p_dst[3] + dc );
+        p_dst[0] = x264_clip_pixel( p_dst[0] + dc );
+        p_dst[1] = x264_clip_pixel( p_dst[1] + dc );
+        p_dst[2] = x264_clip_pixel( p_dst[2] + dc );
+        p_dst[3] = x264_clip_pixel( p_dst[3] + dc );
     }
 }
 

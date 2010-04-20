@@ -138,7 +138,7 @@ static void predict_16x16_p( pixel_t *src )
         int pix = i00;
         for( int x = 0; x < 16; x++ )
         {
-            src[x] = x264_clip_uint8( pix>>5 );
+            src[x] = x264_clip_pixel( pix>>5 );
             pix += b;
         }
         src += FDEC_STRIDE;
@@ -286,7 +286,7 @@ static void predict_8x8c_p( pixel_t *src )
         int pix = i00;
         for( int x = 0; x < 8; x++ )
         {
-            src[x] = x264_clip_uint8( pix>>5 );
+            src[x] = x264_clip_pixel( pix>>5 );
             pix += b;
         }
         src += FDEC_STRIDE;

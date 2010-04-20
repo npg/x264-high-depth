@@ -63,7 +63,7 @@ static inline void pixel_avg_wxh( pixel_t *dst, int i_dst, pixel_t *src1, int i_
 
 /* Implicit weighted bipred only:
  * assumes log2_denom = 5, offset = 0, weight1 + weight2 = 64 */
-#define op_scale2(x) dst[x] = x264_clip_uint8( (src1[x]*i_weight1 + src2[x]*i_weight2 + (1<<5)) >> 6 )
+#define op_scale2(x) dst[x] = x264_clip_pixel( (src1[x]*i_weight1 + src2[x]*i_weight2 + (1<<5)) >> 6 )
 static inline void pixel_avg_weight_wxh( pixel_t *dst, int i_dst, pixel_t *src1, int i_src1, pixel_t *src2, int i_src2, int width, int height, int i_weight1 )
 {
     const int i_weight2 = 64 - i_weight1;
@@ -117,8 +117,8 @@ static void x264_weight_cache( x264_t *h, x264_weight_t *w )
 {
     w->weightfn = h->mc.weight;
 }
-#define opscale(x) dst[x] = x264_clip_uint8( ((src[x] * weight->i_scale + (1<<(weight->i_denom - 1))) >> weight->i_denom) + weight->i_offset )
-#define opscale_noden(x) dst[x] = x264_clip_uint8( src[x] * weight->i_scale + weight->i_offset )
+#define opscale(x) dst[x] = x264_clip_pixel( ((src[x] * weight->i_scale + (1<<(weight->i_denom - 1))) >> weight->i_denom) + weight->i_offset )
+#define opscale_noden(x) dst[x] = x264_clip_pixel( src[x] * weight->i_scale + weight->i_offset )
 static inline void mc_weight( pixel_t *dst, int i_dst_stride, pixel_t *src, int i_src_stride, const x264_weight_t *weight, int i_width, int i_height )
 {
     if( weight->i_denom >= 1 )
@@ -189,13 +189,13 @@ static void hpel_filter( pixel_t *dsth, pixel_t *dstv, pixel_t *dstc, pixel_t *s
         for( int x = -2; x < width+3; x++ )
         {
             int v = TAPFILTER(src,stride);
-            dstv[x] = x264_clip_uint8( (v + 16) >> 5 );
+            dstv[x] = x264_clip_pixel( (v + 16) >> 5 );
             buf[x+2] = v;
         }
         for( int x = 0; x < width; x++ )
-            dstc[x] = x264_clip_uint8( (TAPFILTER(buf+2,1) + 512) >> 10 );
+            dstc[x] = x264_clip_pixel( (TAPFILTER(buf+2,1) + 512) >> 10 );
         for( int x = 0; x < width; x++ )
-            dsth[x] = x264_clip_uint8( (TAPFILTER(src,1) + 16) >> 5 );
+            dsth[x] = x264_clip_pixel( (TAPFILTER(src,1) + 16) >> 5 );
         dsth += stride;
         dstv += stride;
         dstc += stride;

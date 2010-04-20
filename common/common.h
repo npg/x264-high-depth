@@ -138,9 +138,13 @@ void x264_log( x264_t *h, int i_level, const char *psz_fmt, ... );
 void x264_reduce_fraction( int *n, int *d );
 void x264_init_vlc_tables();
 
-static ALWAYS_INLINE uint8_t x264_clip_uint8( int x )
+static ALWAYS_INLINE pixel_t x264_clip_pixel( int x )
 {
+#ifdef X264_HIGH_DEPTH_SUPPORT
+    return x&(~0x3ff) ? (-x)>>31 : x; // FIXME hardcoded 10bit
+#else
     return x&(~255) ? (-x)>>31 : x;
+#endif
 }
 
 static ALWAYS_INLINE int x264_clip3( int v, int i_min, int i_max )

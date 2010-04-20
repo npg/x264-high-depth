@@ -489,8 +489,8 @@ static inline void deblock_luma_c( pixel_t *pix, int xstride, int ystride, int a
                 }
 
                 delta = x264_clip3( (((q0 - p0 ) << 2) + (p1 - q1) + 4) >> 3, -tc, tc );
-                pix[-1*xstride] = x264_clip_uint8( p0 + delta );    /* p0' */
-                pix[ 0*xstride] = x264_clip_uint8( q0 - delta );    /* q0' */
+                pix[-1*xstride] = x264_clip_pixel( p0 + delta );    /* p0' */
+                pix[ 0*xstride] = x264_clip_pixel( q0 - delta );    /* q0' */
             }
             pix += ystride;
         }
@@ -525,8 +525,8 @@ static inline void deblock_chroma_c( pixel_t *pix, int xstride, int ystride, int
             if( abs( p0 - q0 ) < alpha && abs( p1 - p0 ) < beta && abs( q1 - q0 ) < beta )
             {
                 int delta = x264_clip3( (((q0 - p0 ) << 2) + (p1 - q1) + 4) >> 3, -tc, tc );
-                pix[-1*xstride] = x264_clip_uint8( p0 + delta );    /* p0' */
-                pix[ 0*xstride] = x264_clip_uint8( q0 - delta );    /* q0' */
+                pix[-1*xstride] = x264_clip_pixel( p0 + delta );    /* p0' */
+                pix[ 0*xstride] = x264_clip_pixel( q0 - delta );    /* q0' */
             }
             pix += ystride;
         }
