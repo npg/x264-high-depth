@@ -79,7 +79,7 @@ typedef struct
     void (*copy_16x16_unaligned)( pixel_t *dst, int, pixel_t *src, int, int i_height );
 
     void (*plane_copy)( pixel_t *dst, int i_dst,
-                        pixel_t *src, int i_src, int w, int h);
+                        uint8_t *src, int i_src, int w, int h);
 
     void (*hpel_filter)( pixel_t *dsth, pixel_t *dstv, pixel_t *dstc, pixel_t *src,
                          int i_stride, int i_width, int i_height, int16_t *buf );

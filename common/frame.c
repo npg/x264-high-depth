@@ -238,7 +238,7 @@ int x264_frame_copy_picture( x264_t *h, x264_frame_t *dst, x264_picture_t *src )
     for( int i = 0; i < 3; i++ )
     {
         int s = (i_csp == X264_CSP_YV12 && i) ? i^3 : i;
-        pixel_t *plane = src->img.plane[s];
+        uint8_t *plane = src->img.plane[s];
         int stride = src->img.i_stride[s];
         int width = h->param.i_width >> !!i;
         int height = h->param.i_height >> !!i;
