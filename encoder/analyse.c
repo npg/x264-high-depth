@@ -802,7 +802,7 @@ static void x264_mb_analyse_intra( x264_t *h, x264_mb_analysis_t *a, int i_satd_
 
             if( (h->mb.i_neighbour4[idx] & (MB_TOPRIGHT|MB_TOP)) == MB_TOP )
                 /* emulate missing topright samples */
-                M32( &p_dst_by[4 - FDEC_STRIDE] ) = p_dst_by[3 - FDEC_STRIDE] * 0x01010101U;
+                MPIXEL4( &p_dst_by[4 - FDEC_STRIDE] ) = p_dst_by[3 - FDEC_STRIDE] * FILL4PEL;
 
             if( b_merged_satd && predict_mode[5] >= 0 )
             {
@@ -974,7 +974,7 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
 
     if( h->mb.i_type == I_4x4 )
     {
-        uint32_t pels[4] = {0}; // doesn't need initting, just shuts up a gcc warning
+        pixel4_t pels[4] = {0}; // doesn't need initting, just shuts up a gcc warning
         int i_nnz = 0;
         for( int idx = 0; idx < 16; idx++ )
         {
@@ -985,7 +985,7 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
 
             if( (h->mb.i_neighbour4[idx] & (MB_TOPRIGHT|MB_TOP)) == MB_TOP )
                 /* emulate missing topright samples */
-                M32( &p_dst_by[4 - FDEC_STRIDE] ) = p_dst_by[3 - FDEC_STRIDE] * 0x01010101U;
+                MPIXEL4( &p_dst_by[4 - FDEC_STRIDE] ) = p_dst_by[3 - FDEC_STRIDE] * FILL4PEL;
 
             for( ; *predict_mode >= 0; predict_mode++ )
             {
@@ -1000,18 +1000,18 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
                 {
                     a->i_predict4x4[idx] = i_mode;
                     i_best = i_satd;
-                    pels[0] = M32( p_dst_by+0*FDEC_STRIDE );
-                    pels[1] = M32( p_dst_by+1*FDEC_STRIDE );
-                    pels[2] = M32( p_dst_by+2*FDEC_STRIDE );
-                    pels[3] = M32( p_dst_by+3*FDEC_STRIDE );
+                    pels[0] = MPIXEL4( p_dst_by+0*FDEC_STRIDE );
+                    pels[1] = MPIXEL4( p_dst_by+1*FDEC_STRIDE );
+                    pels[2] = MPIXEL4( p_dst_by+2*FDEC_STRIDE );
+                    pels[3] = MPIXEL4( p_dst_by+3*FDEC_STRIDE );
                     i_nnz = h->mb.cache.non_zero_count[x264_scan8[idx]];
                 }
             }
 
-            M32( p_dst_by+0*FDEC_STRIDE ) = pels[0];
-            M32( p_dst_by+1*FDEC_STRIDE ) = pels[1];
-            M32( p_dst_by+2*FDEC_STRIDE ) = pels[2];
-            M32( p_dst_by+3*FDEC_STRIDE ) = pels[3];
+            MPIXEL4( p_dst_by+0*FDEC_STRIDE ) = pels[0];
+            MPIXEL4( p_dst_by+1*FDEC_STRIDE ) = pels[1];
+            MPIXEL4( p_dst_by+2*FDEC_STRIDE ) = pels[2];
+            MPIXEL4( p_dst_by+3*FDEC_STRIDE ) = pels[3];
             h->mb.cache.non_zero_count[x264_scan8[idx]] = i_nnz;
 
             h->mb.cache.intra4x4_pred_mode[x264_scan8[idx]] = a->i_predict4x4[idx];
@@ -1022,7 +1022,7 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
         ALIGNED_ARRAY_16( pixel_t, edge,[33] );
         for( int idx = 0; idx < 4; idx++ )
         {
-            uint64_t pels_h = 0;
+            pixel4_t pels_h[2] = {0};
             pixel_t pels_v[7];
             uint16_t i_nnz[2] = {0}; //shut up gcc
             pixel_t *p_dst_by;
@@ -1056,7 +1056,8 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
                     cbp_luma_new = h->mb.i_cbp_luma;
                     i_best = i_satd;
 
-                    pels_h = M64( p_dst_by+7*FDEC_STRIDE );
+                    pels_h[0] = MPIXEL4( p_dst_by + 7*FDEC_STRIDE );
+                    pels_h[1] = MPIXEL4( p_dst_by + 7*FDEC_STRIDE + 4 );
                     if( !(idx&1) )
                         for( int j = 0; j < 7; j++ )
                             pels_v[j] = p_dst_by[7+j*FDEC_STRIDE];
@@ -1065,7 +1066,8 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
                 }
             }
             a->i_cbp_i8x8_luma = cbp_luma_new;
-            M64( p_dst_by+7*FDEC_STRIDE ) = pels_h;
+            MPIXEL4( p_dst_by+7*FDEC_STRIDE ) = pels_h[0];
+            MPIXEL4( p_dst_by+7*FDEC_STRIDE + 4 ) = pels_h[1];
             if( !(idx&1) )
                 for( int j = 0; j < 7; j++ )
                     p_dst_by[7+j*FDEC_STRIDE] = pels_v[j];

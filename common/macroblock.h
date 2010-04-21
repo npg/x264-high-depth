@@ -333,6 +333,14 @@ static ALWAYS_INLINE uint32_t pack16to32_mask( int a, int b )
    return (a&0xFFFF) + (b<<16);
 #endif
 }
+static ALWAYS_INLINE uint64_t pack32to64( int64_t a, int64_t b )
+{
+#ifdef WORDS_BIGENDIAN
+    return b + (a<<32);
+#else
+    return a + (b<<32);
+#endif
+}
 
 #define array_non_zero(a) array_non_zero_int(a, sizeof(a))
 #define array_non_zero_int array_non_zero_int

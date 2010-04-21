@@ -97,8 +97,16 @@ typedef union { uint64_t i; uint32_t a[2]; uint16_t b[4]; uint8_t c[8]; } MAY_AL
 
 #ifdef X264_HIGH_DEPTH_SUPPORT
     typedef uint16_t pixel_t;
+    typedef uint64_t pixel4_t;
+#   define MPIXEL4(src) M64(src)
+#   define FILL4PEL 0x0001000100010001ULL
+#   define FILL128  0x0200020002000200ULL  // FIXME ?
 # else
     typedef uint8_t pixel_t;
+    typedef uint32_t pixel4_t;
+#   define MPIXEL4(src) M32(src)
+#   define FILL4PEL 0x01010101U
+#   define FILL128  0x80808080U
 #endif
 
 #include "x264.h"
