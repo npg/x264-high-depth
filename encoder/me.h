@@ -38,9 +38,9 @@ typedef struct
     int      i_ref;
     const x264_weight_t *weight;
 
-    uint8_t *p_fref[6];
-    uint8_t *p_fref_w;
-    uint8_t *p_fenc[3];
+    pixel_t *p_fref[6];
+    pixel_t *p_fref_w;
+    pixel_t *p_fenc[3];
     uint16_t *integral;
     int      i_stride[2];
 

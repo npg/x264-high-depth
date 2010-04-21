@@ -294,7 +294,7 @@ void x264_analyse_weight_frame( x264_t *h, int end )
             int width = frame->i_width[0] + 2*PADH;
             int i_padv = PADV << h->param.b_interlaced;
             int offset, height;
-            uint8_t *src = frame->filtered[0] - frame->i_stride[0]*i_padv - PADH;
+            pixel_t *src = frame->filtered[0] - frame->i_stride[0]*i_padv - PADH;
             height = X264_MIN( 16 + end + i_padv, h->fref0[j]->i_lines[0] + i_padv*2 ) - h->fenc->i_lines_weighted;
             offset = h->fenc->i_lines_weighted*frame->i_stride[0];
             h->fenc->i_lines_weighted += height;
@@ -302,7 +302,7 @@ void x264_analyse_weight_frame( x264_t *h, int end )
                 for( int k = j; k < h->i_ref0; k++ )
                     if( h->sh.weight[k][0].weightfn )
                     {
-                        uint8_t *dst = h->fenc->weighted[k] - h->fenc->i_stride[0]*i_padv - PADH;
+                        pixel_t *dst = h->fenc->weighted[k] - h->fenc->i_stride[0]*i_padv - PADH;
                         x264_weight_scale_plane( h, dst + offset, frame->i_stride[0],
                                                  src + offset, frame->i_stride[0],
                                                  width, height, &h->sh.weight[k][0] );
@@ -549,7 +549,7 @@ static ALWAYS_INLINE const int8_t *predict_4x4_mode_available( int i_neighbour )
 /* For trellis=2, we need to do this for both sizes of DCT, for trellis=1 we only need to use it on the chosen mode. */
 static void inline x264_psy_trellis_init( x264_t *h, int do_both_dct )
 {
-    ALIGNED_16( static uint8_t zero[16*FDEC_STRIDE] ) = {0};
+    ALIGNED_16( static pixel_t zero[16*FDEC_STRIDE] ) = {0};
 
     if( do_both_dct || h->mb.b_transform_8x8 )
         h->dctf.sub16x16_dct8( h->mb.pic.fenc_dct8, h->mb.pic.p_fenc[0], zero );
@@ -631,8 +631,8 @@ static void x264_mb_analyse_intra_chroma( x264_t *h, x264_mb_analysis_t *a )
 static void x264_mb_analyse_intra( x264_t *h, x264_mb_analysis_t *a, int i_satd_inter )
 {
     const unsigned int flags = h->sh.i_type == SLICE_TYPE_I ? h->param.analyse.intra : h->param.analyse.inter;
-    uint8_t  *p_src = h->mb.pic.p_fenc[0];
-    uint8_t  *p_dst = h->mb.pic.p_fdec[0];
+    pixel_t  *p_src = h->mb.pic.p_fenc[0];
+    pixel_t  *p_dst = h->mb.pic.p_fdec[0];
 
     int idx;
     int b_merged_satd = !!h->pixf.intra_mbcmp_x3_16x16 && !h->mb.b_lossless;
@@ -685,7 +685,7 @@ static void x264_mb_analyse_intra( x264_t *h, x264_mb_analysis_t *a, int i_satd_
     /* 8x8 prediction selection */
     if( flags & X264_ANALYSE_I8x8 )
     {
-        ALIGNED_ARRAY_16( uint8_t, edge,[33] );
+        ALIGNED_ARRAY_16( pixel_t, edge,[33] );
         x264_pixel_cmp_t sa8d = (h->pixf.mbcmp[0] == h->pixf.satd[0]) ? h->pixf.sa8d[PIXEL_8x8] : h->pixf.mbcmp[PIXEL_8x8];
         int i_satd_thresh = a->i_mbrd ? COST_MAX : X264_MIN( i_satd_inter, a->i_satd_i16x16 );
 
@@ -701,8 +701,8 @@ static void x264_mb_analyse_intra( x264_t *h, x264_mb_analysis_t *a, int i_satd_
         {
             int x = idx&1;
             int y = idx>>1;
-            uint8_t *p_src_by = p_src + 8*x + 8*y*FENC_STRIDE;
-            uint8_t *p_dst_by = p_dst + 8*x + 8*y*FDEC_STRIDE;
+            pixel_t *p_src_by = p_src + 8*x + 8*y*FENC_STRIDE;
+            pixel_t *p_dst_by = p_dst + 8*x + 8*y*FDEC_STRIDE;
             int i_best = COST_MAX;
             int i_pred_mode = x264_mb_predict_intra4x4_mode( h, 4*idx );
 
@@ -793,8 +793,8 @@ static void x264_mb_analyse_intra( x264_t *h, x264_mb_analysis_t *a, int i_satd_
 
         for( idx = 0;; idx++ )
         {
-            uint8_t *p_src_by = p_src + block_idx_xy_fenc[idx];
-            uint8_t *p_dst_by = p_dst + block_idx_xy_fdec[idx];
+            pixel_t *p_src_by = p_src + block_idx_xy_fenc[idx];
+            pixel_t *p_dst_by = p_dst + block_idx_xy_fdec[idx];
             int i_best = COST_MAX;
             int i_pred_mode = x264_mb_predict_intra4x4_mode( h, idx );
 
@@ -905,7 +905,7 @@ static void x264_intra_rd( x264_t *h, x264_mb_analysis_t *a, int i_satd_thresh )
 
 static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
 {
-    uint8_t  *p_dst = h->mb.pic.p_fdec[0];
+    pixel_t  *p_dst = h->mb.pic.p_fdec[0];
 
     int x, y;
     uint64_t i_satd, i_best;
@@ -978,7 +978,7 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
         int i_nnz = 0;
         for( int idx = 0; idx < 16; idx++ )
         {
-            uint8_t *p_dst_by = p_dst + block_idx_xy_fdec[idx];
+            pixel_t *p_dst_by = p_dst + block_idx_xy_fdec[idx];
             i_best = COST_MAX64;
 
             predict_mode = predict_4x4_mode_available( h->mb.i_neighbour4[idx] );
@@ -1019,13 +1019,13 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
     }
     else if( h->mb.i_type == I_8x8 )
     {
-        ALIGNED_ARRAY_16( uint8_t, edge,[33] );
+        ALIGNED_ARRAY_16( pixel_t, edge,[33] );
         for( int idx = 0; idx < 4; idx++ )
         {
             uint64_t pels_h = 0;
-            uint8_t pels_v[7];
+            pixel_t pels_v[7];
             uint16_t i_nnz[2] = {0}; //shut up gcc
-            uint8_t *p_dst_by;
+            pixel_t *p_dst_by;
             int cbp_luma_new = 0;
             int i_thresh = a->i_satd_i8x8_dir[a->i_predict8x8[idx]][idx] * 11/8;
 
@@ -1185,7 +1185,7 @@ static void x264_mb_analyse_inter_p16x16( x264_t *h, x264_mb_analysis_t *a )
 static void x264_mb_analyse_inter_p8x8_mixed_ref( x264_t *h, x264_mb_analysis_t *a )
 {
     x264_me_t m;
-    uint8_t  **p_fenc = h->mb.pic.p_fenc;
+    pixel_t  **p_fenc = h->mb.pic.p_fenc;
     int i_maxref = h->mb.pic.i_fref[0]-1;
 
     h->mb.i_partition = D_8x8;
@@ -1279,7 +1279,7 @@ static void x264_mb_analyse_inter_p8x8( x264_t *h, x264_mb_analysis_t *a )
      * don't bother analysing the dupes. */
     const int i_ref = h->mb.ref_blind_dupe == a->l0.me16x16.i_ref ? 0 : a->l0.me16x16.i_ref;
     const int i_ref_cost = h->param.b_cabac || i_ref ? REF_COST( 0, i_ref ) : 0;
-    uint8_t  **p_fenc = h->mb.pic.p_fenc;
+    pixel_t  **p_fenc = h->mb.pic.p_fenc;
     int i_mvc;
     int16_t (*mvc)[2] = a->l0.mvc[i_ref];
 
@@ -1329,7 +1329,7 @@ static void x264_mb_analyse_inter_p8x8( x264_t *h, x264_mb_analysis_t *a )
 static void x264_mb_analyse_inter_p16x8( x264_t *h, x264_mb_analysis_t *a )
 {
     x264_me_t m;
-    uint8_t  **p_fenc = h->mb.pic.p_fenc;
+    pixel_t  **p_fenc = h->mb.pic.p_fenc;
     ALIGNED_4( int16_t mvc[3][2] );
 
     /* XXX Needed for x264_mb_predict_mv */
@@ -1386,7 +1386,7 @@ static void x264_mb_analyse_inter_p16x8( x264_t *h, x264_mb_analysis_t *a )
 static void x264_mb_analyse_inter_p8x16( x264_t *h, x264_mb_analysis_t *a )
 {
     x264_me_t m;
-    uint8_t  **p_fenc = h->mb.pic.p_fenc;
+    pixel_t  **p_fenc = h->mb.pic.p_fenc;
     ALIGNED_4( int16_t mvc[3][2] );
 
     /* XXX Needed for x264_mb_predict_mv */
@@ -1439,10 +1439,10 @@ static void x264_mb_analyse_inter_p8x16( x264_t *h, x264_mb_analysis_t *a )
     a->l0.i_cost8x16 = a->l0.me8x16[0].cost + a->l0.me8x16[1].cost;
 }
 
-static int x264_mb_analyse_inter_p4x4_chroma( x264_t *h, x264_mb_analysis_t *a, uint8_t **p_fref, int i8x8, int pixel )
+static int x264_mb_analyse_inter_p4x4_chroma( x264_t *h, x264_mb_analysis_t *a, pixel_t **p_fref, int i8x8, int pixel )
 {
-    ALIGNED_ARRAY_8( uint8_t, pix1,[16*8] );
-    uint8_t *pix2 = pix1+8;
+    ALIGNED_ARRAY_8( pixel_t, pix1,[16*8] );
+    pixel_t *pix2 = pix1+8;
     const int i_stride = h->mb.pic.i_stride[1];
     const int or = 4*(i8x8&1) + 2*(i8x8&2)*i_stride;
     const int oe = 4*(i8x8&1) + 2*(i8x8&2)*FENC_STRIDE;
@@ -1486,8 +1486,8 @@ static int x264_mb_analyse_inter_p4x4_chroma( x264_t *h, x264_mb_analysis_t *a, 
 
 static void x264_mb_analyse_inter_p4x4( x264_t *h, x264_mb_analysis_t *a, int i8x8 )
 {
-    uint8_t  **p_fref = h->mb.pic.p_fref[0][a->l0.me8x8[i8x8].i_ref];
-    uint8_t  **p_fenc = h->mb.pic.p_fenc;
+    pixel_t  **p_fref = h->mb.pic.p_fref[0][a->l0.me8x8[i8x8].i_ref];
+    pixel_t  **p_fenc = h->mb.pic.p_fenc;
     const int i_ref = a->l0.me8x8[i8x8].i_ref;
 
     /* XXX Needed for x264_mb_predict_mv */
@@ -1525,8 +1525,8 @@ static void x264_mb_analyse_inter_p4x4( x264_t *h, x264_mb_analysis_t *a, int i8
 
 static void x264_mb_analyse_inter_p8x4( x264_t *h, x264_mb_analysis_t *a, int i8x8 )
 {
-    uint8_t  **p_fref = h->mb.pic.p_fref[0][a->l0.me8x8[i8x8].i_ref];
-    uint8_t  **p_fenc = h->mb.pic.p_fenc;
+    pixel_t  **p_fref = h->mb.pic.p_fref[0][a->l0.me8x8[i8x8].i_ref];
+    pixel_t  **p_fenc = h->mb.pic.p_fenc;
     const int i_ref = a->l0.me8x8[i8x8].i_ref;
 
     /* XXX Needed for x264_mb_predict_mv */
@@ -1561,8 +1561,8 @@ static void x264_mb_analyse_inter_p8x4( x264_t *h, x264_mb_analysis_t *a, int i8
 
 static void x264_mb_analyse_inter_p4x8( x264_t *h, x264_mb_analysis_t *a, int i8x8 )
 {
-    uint8_t  **p_fref = h->mb.pic.p_fref[0][a->l0.me8x8[i8x8].i_ref];
-    uint8_t  **p_fenc = h->mb.pic.p_fenc;
+    pixel_t  **p_fref = h->mb.pic.p_fref[0][a->l0.me8x8[i8x8].i_ref];
+    pixel_t  **p_fenc = h->mb.pic.p_fenc;
     const int i_ref = a->l0.me8x8[i8x8].i_ref;
 
     /* XXX Needed for x264_mb_predict_mv */
@@ -1600,8 +1600,8 @@ static void x264_mb_analyse_inter_direct( x264_t *h, x264_mb_analysis_t *a )
     /* Assumes that fdec still contains the results of
      * x264_mb_predict_mv_direct16x16 and x264_mb_mc */
 
-    uint8_t *p_fenc = h->mb.pic.p_fenc[0];
-    uint8_t *p_fdec = h->mb.pic.p_fdec[0];
+    pixel_t *p_fenc = h->mb.pic.p_fenc[0];
+    pixel_t *p_fdec = h->mb.pic.p_fdec[0];
 
     a->i_cost16x16direct = a->i_lambda * i_mb_b_cost_table[B_DIRECT];
     if( h->param.analyse.inter & X264_ANALYSE_BSUB16x16 )
@@ -1622,9 +1622,9 @@ static void x264_mb_analyse_inter_direct( x264_t *h, x264_mb_analysis_t *a )
 
 static void x264_mb_analyse_inter_b16x16( x264_t *h, x264_mb_analysis_t *a )
 {
-    ALIGNED_ARRAY_16( uint8_t, pix0,[16*16] );
-    ALIGNED_ARRAY_16( uint8_t, pix1,[16*16] );
-    uint8_t *src0, *src1;
+    ALIGNED_ARRAY_16( pixel_t, pix0,[16*16] );
+    ALIGNED_ARRAY_16( pixel_t, pix1,[16*16] );
+    pixel_t *src0, *src1;
     int stride0 = 16, stride1 = 16;
     int i_ref, i_mvc;
     ALIGNED_4( int16_t mvc[9][2] );
@@ -1848,7 +1848,7 @@ static inline void x264_mb_cache_mv_b8x16( x264_t *h, x264_mb_analysis_t *a, int
 
 static void x264_mb_analyse_inter_b8x8_mixed_ref( x264_t *h, x264_mb_analysis_t *a )
 {
-    ALIGNED_ARRAY_8( uint8_t, pix,[2],[8*8] );
+    ALIGNED_ARRAY_8( pixel_t, pix,[2],[8*8] );
     int i_maxref[2] = {h->mb.pic.i_fref[0]-1, h->mb.pic.i_fref[1]-1};
 
     /* early termination: if 16x16 chose ref 0, then evalute no refs older
@@ -1888,7 +1888,7 @@ static void x264_mb_analyse_inter_b8x8_mixed_ref( x264_t *h, x264_mb_analysis_t 
         int i_part_cost;
         int i_part_cost_bi;
         int stride[2] = {8,8};
-        uint8_t *src[2];
+        pixel_t *src[2];
         x264_me_t m;
         m.i_pixel = PIXEL_8x8;
         LOAD_FENC( &m, h->mb.pic.p_fenc, 8*x8, 8*y8 );
@@ -1953,10 +1953,10 @@ static void x264_mb_analyse_inter_b8x8_mixed_ref( x264_t *h, x264_mb_analysis_t 
 
 static void x264_mb_analyse_inter_b8x8( x264_t *h, x264_mb_analysis_t *a )
 {
-    uint8_t **p_fref[2] =
+    pixel_t **p_fref[2] =
         { h->mb.pic.p_fref[0][a->l0.me16x16.i_ref],
           h->mb.pic.p_fref[1][a->l1.me16x16.i_ref] };
-    ALIGNED_ARRAY_8( uint8_t, pix,[2],[8*8] );
+    ALIGNED_ARRAY_8( pixel_t, pix,[2],[8*8] );
 
     /* XXX Needed for x264_mb_predict_mv */
     h->mb.i_partition = D_8x8;
@@ -1970,7 +1970,7 @@ static void x264_mb_analyse_inter_b8x8( x264_t *h, x264_mb_analysis_t *a )
         int i_part_cost;
         int i_part_cost_bi = 0;
         int stride[2] = {8,8};
-        uint8_t *src[2];
+        pixel_t *src[2];
 
         for( int l = 0; l < 2; l++ )
         {
@@ -2023,7 +2023,7 @@ static void x264_mb_analyse_inter_b8x8( x264_t *h, x264_mb_analysis_t *a )
 
 static void x264_mb_analyse_inter_b16x8( x264_t *h, x264_mb_analysis_t *a )
 {
-    ALIGNED_ARRAY_16( uint8_t, pix,[2],[16*8] );
+    ALIGNED_ARRAY_16( pixel_t, pix,[2],[16*8] );
     ALIGNED_4( int16_t mvc[3][2] );
 
     h->mb.i_partition = D_16x8;
@@ -2034,7 +2034,7 @@ static void x264_mb_analyse_inter_b16x8( x264_t *h, x264_mb_analysis_t *a )
         int i_part_cost;
         int i_part_cost_bi = 0;
         int stride[2] = {16,16};
-        uint8_t *src[2];
+        pixel_t *src[2];
         x264_me_t m;
         m.i_pixel = PIXEL_16x8;
         LOAD_FENC( &m, h->mb.pic.p_fenc, 0, 8*i );
@@ -2105,7 +2105,7 @@ static void x264_mb_analyse_inter_b16x8( x264_t *h, x264_mb_analysis_t *a )
 
 static void x264_mb_analyse_inter_b8x16( x264_t *h, x264_mb_analysis_t *a )
 {
-    ALIGNED_ARRAY_8( uint8_t, pix,[2],[8*16] );
+    ALIGNED_ARRAY_8( pixel_t, pix,[2],[8*16] );
     ALIGNED_4( int16_t mvc[3][2] );
 
     h->mb.i_partition = D_8x16;
@@ -2116,7 +2116,7 @@ static void x264_mb_analyse_inter_b8x16( x264_t *h, x264_mb_analysis_t *a )
         int i_part_cost;
         int i_part_cost_bi = 0;
         int stride[2] = {8,8};
-        uint8_t *src[2];
+        pixel_t *src[2];
         x264_me_t m;
         m.i_pixel = PIXEL_8x16;
         LOAD_FENC( &m, h->mb.pic.p_fenc, 8*i, 0 );

@@ -140,7 +140,7 @@ void x264_init_vlc_tables();
 
 static ALWAYS_INLINE pixel_t x264_clip_pixel( int x )
 {
-#ifdef X264_HIGH_DEPTH_SUPPORT
+#if 0 /* ifdef X264_HIGH_DEPTH_SUPPORT */
     return x&(~0x3ff) ? (-x)>>31 : x; // FIXME hardcoded 10bit
 #else
     return x&(~255) ? (-x)>>31 : x;
@@ -570,7 +570,7 @@ struct x264_t
         pixel_t *intra_border_backup[2][3]; /* bottom pixels of the previous mb row, used for intra prediction after the framebuffer has been deblocked */
 
          /* buffer for weighted versions of the reference frames */
-        uint8_t *p_weight_buf[16];
+        pixel_t *p_weight_buf[16];
 
         /* current value */
         int     i_type;

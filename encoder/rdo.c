@@ -75,7 +75,7 @@ static ALWAYS_INLINE uint64_t cached_hadamard( x264_t *h, int pixel, int x, int 
         return res - 1;
     else
     {
-        uint8_t *fenc = h->mb.pic.p_fenc[0] + x + y*FENC_STRIDE;
+        pixel_t *fenc = h->mb.pic.p_fenc[0] + x + y*FENC_STRIDE;
         res = h->pixf.hadamard_ac[pixel]( fenc, FENC_STRIDE );
         h->mb.pic.fenc_hadamard_cache[cache_index] = res + 1;
         return res;
@@ -87,7 +87,7 @@ static ALWAYS_INLINE int cached_satd( x264_t *h, int pixel, int x, int y )
     static const uint8_t satd_shift_x[3] = {3,   2,   2};
     static const uint8_t satd_shift_y[3] = {2-1, 3-2, 2-2};
     static const uint8_t  satd_offset[3] = {0,   8,   16};
-    ALIGNED_16( static uint8_t zero[16] );
+    ALIGNED_16( static pixel_t zero[16] );
     int cache_index = (x >> satd_shift_x[pixel - PIXEL_8x4]) + (y >> satd_shift_y[pixel - PIXEL_8x4])
                     + satd_offset[pixel - PIXEL_8x4];
     int res = h->mb.pic.fenc_satd_cache[cache_index];
@@ -95,7 +95,7 @@ static ALWAYS_INLINE int cached_satd( x264_t *h, int pixel, int x, int y )
         return res - 1;
     else
     {
-        uint8_t *fenc = h->mb.pic.p_fenc[0] + x + y*FENC_STRIDE;
+        pixel_t *fenc = h->mb.pic.p_fenc[0] + x + y*FENC_STRIDE;
         int dc = h->pixf.sad[pixel]( fenc, FENC_STRIDE, zero, 0 ) >> 1;
         res = h->pixf.satd[pixel]( fenc, FENC_STRIDE, zero, 0 ) - dc;
         h->mb.pic.fenc_satd_cache[cache_index] = res + 1;
@@ -114,10 +114,10 @@ static ALWAYS_INLINE int cached_satd( x264_t *h, int pixel, int x, int y )
 
 static inline int ssd_plane( x264_t *h, int size, int p, int x, int y )
 {
-    ALIGNED_16(static uint8_t zero[16]);
+    ALIGNED_16(static pixel_t zero[16]);
     int satd = 0;
-    uint8_t *fdec = h->mb.pic.p_fdec[p] + x + y*FDEC_STRIDE;
-    uint8_t *fenc = h->mb.pic.p_fenc[p] + x + y*FENC_STRIDE;
+    pixel_t *fdec = h->mb.pic.p_fdec[p] + x + y*FDEC_STRIDE;
+    pixel_t *fenc = h->mb.pic.p_fenc[p] + x + y*FENC_STRIDE;
     if( p == 0 && h->mb.i_psy_rd )
     {
         /* If the plane is smaller than 8x8, we can't do an SA8D; this probably isn't a big problem. */

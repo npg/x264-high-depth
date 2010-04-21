@@ -753,7 +753,7 @@ int x264_macroblock_cache_init( x264_t *h )
         }
 
         for( int i = 0; i < numweightbuf; i++ )
-            CHECKED_MALLOC( h->mb.p_weight_buf[i], luma_plane_size );
+            CHECKED_MALLOC( h->mb.p_weight_buf[i], luma_plane_size * sizeof(pixel_t) );
 #undef ALIGN
     }
 
