@@ -1557,7 +1557,7 @@ static void x264_fdec_filter_row( x264_t *h, int mb_y )
             {
                 memcpy( h->mb.intra_border_backup[j][i],
                         h->fdec->plane[i] + ((mb_y*16 >> !!i) + j - 1 - h->sh.b_mbaff) * h->fdec->i_stride[i],
-                        h->sps->i_mb_width*16 >> !!i );
+                        (h->sps->i_mb_width*16 >> !!i) * sizeof(pixel_t) );
             }
 
     if( b_deblock )
